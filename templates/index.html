@@ -66,7 +66,6 @@
         </div>
         <h1>LowEndTalk 监控</h1>
 
-        <!-- Access Token 输入界面 -->
         <div v-if="!isAuthenticated">
             <h2>请输入 Access Token</h2>
             <el-form label-position="top" label-width="120px">
@@ -77,7 +76,6 @@
             </el-form>
         </div>
 
-        <!-- 完整配置界面 -->
         <div v-else>
             <h2>基础配置</h2>
             <el-form label-position="top" label-width="120px">
@@ -146,23 +144,22 @@
                 </el-form-item>
 
                 <template v-if="config.use_ai_filter">
-                    <el-form-item label="Cloudflare Account ID">
-                        <el-input v-model="config.cf_account_id" placeholder="Cloudflare Account ID"></el-input>
+                    <el-form-item label="OpenAI API Base URL">
+                        <el-input v-model="config.openai_base_url" placeholder="https://api.openai.com/v1"></el-input>
                     </el-form-item>
-                    <el-form-item label="Cloudflare Token">
-                        <el-input v-model="config.cf_token" placeholder="Cloudflare Token"></el-input>
+                    <el-form-item label="OpenAI API Key">
+                        <el-input v-model="config.openai_api_key" type="password" placeholder="sk-..." show-password></el-input>
                     </el-form-item>
-                    <el-form-item label="模型">
-                        <el-input v-model="config.model" placeholder="Model"></el-input>
+                    <el-form-item label="模型 (Model)">
+                        <el-input v-model="config.model" placeholder="gpt-4o"></el-input>
                     </el-form-item>
                     <el-form-item label="Thread Prompt">
-                        <el-input v-model="config.thread_prompt" type="textarea" placeholder="Thread Prompt"></el-input>
+                        <el-input v-model="config.thread_prompt" type="textarea" :rows="3" placeholder="Thread Prompt"></el-input>
                     </el-form-item>
                     <el-form-item label="Comment Prompt">
-                        <el-input v-model="config.comment_prompt" type="textarea" placeholder="Comment Prompt"></el-input>
+                        <el-input v-model="config.comment_prompt" type="textarea" :rows="3" placeholder="Comment Prompt"></el-input>
                     </el-form-item>
                 </template>
-
                 <el-button type="primary" @click="updateConfig">保存配置</el-button>
                 <el-button @click="logout" style="margin-left: 10px;">退出</el-button>
             </el-form>
@@ -188,9 +185,10 @@
                         notice_type: 'telegram',
                         wechat_key: '',
                         custom_url: '',
-                        cf_account_id: '',
-                        cf_token: '',
-                        model: '',
+                        // 移除 Cloudflare 字段，添加 OpenAI 字段
+                        openai_api_key: '',
+                        openai_base_url: 'https://api.openai.com/v1',
+                        model: 'gpt-4o',
                         thread_prompt: '',
                         comment_prompt: '',
                         use_keywords_filter: false,
@@ -218,6 +216,12 @@
                         this.config = response.data;
                         this.config.urls_text = this.config.urls ? this.config.urls.join('\n') : '';
                         this.config.extra_urls_text = this.config.extra_urls ? this.config.extra_urls.join('\n') : '';
+                        
+                        // 兼容旧配置：如果读取回来的配置里没有这些新字段，给予默认值
+                        if (!this.config.openai_base_url) {
+                            this.config.openai_base_url = 'https://api.openai.com/v1';
+                        }
+                        
                         this.isAuthenticated = true;
                         localStorage.setItem('accessToken', this.accessToken);
                     }).catch(error => {
@@ -236,6 +240,10 @@
                         this.config = response.data;
                         this.config.urls_text = this.config.urls ? this.config.urls.join('\n') : '';
                         this.config.extra_urls_text = this.config.extra_urls ? this.config.extra_urls.join('\n') : '';
+                         // 兼容旧配置
+                        if (!this.config.openai_base_url) {
+                            this.config.openai_base_url = 'https://api.openai.com/v1';
+                        }
                         this.isAuthenticated = true;
                     }).catch(error => {
                         if (error.response && error.response.status === 401) {
@@ -271,9 +279,10 @@
                         notice_type: 'telegram',
                         wechat_key: '',
                         custom_url: '',
-                        cf_account_id: '',
-                        cf_token: '',
-                        model: '',
+                        // 重置时也使用新字段
+                        openai_api_key: '',
+                        openai_base_url: 'https://api.openai.com/v1',
+                        model: 'gpt-4o',
                         thread_prompt: '',
                         comment_prompt: '',
                         use_keywords_filter: false,
