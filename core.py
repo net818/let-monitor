@@ -250,7 +250,7 @@ class ForumMonitor:
                 'comment_id': f"{thread['domain']}_{cid}",
                 'thread_url': thread['link'],
                 'author': author,
-                'message': msg[:200].strip(),
+                'message': msg.strip(),  # 修改处：去掉了 [:200]
                 'created_at': datetime.strptime(created, "%Y-%m-%dT%H:%M:%S+00:00"),
                 'created_at_recorded': datetime.now(timezone.utc),
                 'url': f"https://{thread['domain']}.com/discussion/comment/{cid}/#Comment_{cid}"
