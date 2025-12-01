@@ -19,20 +19,51 @@ class Filter:
                 return True
         return False
 
-    # -------- AI 相关功能 --------
-    def workers_ai_run(self, model, inputs):
-        headers = {"Authorization": f"Bearer {self.config['cf_token']}"}
-        input = { "messages": inputs }
-        response = requests.post(f"https://api.cloudflare.com/client/v4/accounts/{self.config['cf_account_id']}/ai/run/{model}", headers=headers, json=input)
-        return response.json()
+    # -------- AI 相关功能 (OpenAI Compatible) --------
+    def openai_run(self, model, inputs):
+        # 获取配置，支持自定义 Base URL (例如用于 OneAPI 或其他中转)
+        api_key = self.config.get('openai_api_key', '')
+        base_url = self.config.get('openai_base_url', 'https://api.openai.com/v1')
+        
+        # 构造请求 URL，确保指向 chat/completions
+        if not base_url.endswith('/'):
+            base_url += '/'
+        url = f"{base_url}chat/completions"
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "model": model,
+            "messages": inputs,
+            "temperature": 0.7 
+        }
+
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            if response.status_code != 200:
+                print(f"AI API Error: {response.text}")
+                return None
+            return response.json()
+        except Exception as e:
+            print(f"Request Exception: {e}")
+            return None
 
     def ai_filter(self, description, prompt):
-        print('Using AI',description)
+        print('Using AI Model:', self.config.get('model'))
         inputs = [
             { "role": "system", "content": prompt},
             { "role": "user", "content": description}
         ]
-        output = self.workers_ai_run(self.config['model'], inputs) # "@cf/qwen/qwen1.5-14b-chat-awq"
-        print(output)
-        # return output['result']['response'].split('END')[0]
-        return output['result']['choices'][0]['message']['content'].split('END')[0]
+        
+        output = self.openai_run(self.config['model'], inputs)
+        
+        if output and 'choices' in output and len(output['choices']) > 0:
+            content = output['choices'][0]['message']['content']
+            # 保留原本的逻辑，分割 END
+            return content.split('END')[0]
+        else:
+            print("AI response parsing failed or empty")
+            return "AI Processing Failed"
