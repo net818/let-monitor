@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/vpslog/let-monitor:latest  # 从 GitHub Container Registry 拉取最新版本
+    build: .
     ports:
       - "5556:5556"
     volumes:
