@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from send import NotificationSender
 import os
 from pymongo import MongoClient
-import cloudscraper
+import cfscrape
 import shutil
 from dotenv import load_dotenv
 from urllib.parse import urlparse
@@ -18,7 +18,7 @@ from filter import Filter
 load_dotenv('data/.env')
 
 
-scraper = cloudscraper.create_scraper()
+scraper = cfscrape.create_scraper()
 
 
 class ForumMonitor:
