@@ -2,7 +2,7 @@ Flask
 requests
 beautifulsoup4
 pymongo
-cloudscraper
+cfscrape
 requests==2.28.2
 python-dotenv
 lxml
